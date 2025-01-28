@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca com Dados Fixos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    
+        header {
+            height: 50vh;
+            background-image: url(./img/header.png);
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+    
+        header h1 {
+            margin: 0 0 10px;
+            font-size: 2rem;
+        }
+    
+        header p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+    
+        header input {
+            padding: 10px;
+            width: 60%;
+            max-width: 500px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    
+        header button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: white;
+            background-color: #5c88e9;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        header button:hover {
+            background-color: #5c89e985;
+        }
+    
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+    
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #f4f4f4;
+        }
+    
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    
+        tr:hover {
+            background-color: #e0f7fa;
+        }
+    
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+        }
+    
+        /* Media Query para telas menores */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+    
+            header p {
+                font-size: 0.9rem;
+            }
+    
+            header input {
+                width: 80%;
+                max-width: 400px;
+            }
+    
+            table {
+                width: 100%;
+                font-size: 0.9rem;
+            }
+    
+            th, td {
+                padding: 8px;
+            }
+    
+            header button {
+                width: 80%;
+            }
+        }
+    
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.2rem;
+            }
+    
+            header p {
+                font-size: 0.8rem;
+            }
+    
+            header input {
+                width: 90%;
+            }
+    
+            table {
+                font-size: 0.8rem;
+            }
+    
+            th, td {
+                padding: 6px;
+            }
+    
+            header button {
+                width: 90%;
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <header>
+        <h1>Biblioteca <br> UCERGS – União de cegos do Rio Grande do Sul</h1>
+        <p>| Unindo e formando pessoas para a construção de uma sociedade mais justa e inclusiva.</p>
+        <input type="text" id="busca" placeholder="Digite para buscar..." aria-label="Campo de busca na tabela">
+        <button id="limpar-busca">Limpar Busca</button>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Numeração</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Assunto</th>
+                <th>CDU</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo"></tbody>
+    </table>
+
+    <script>
+        async function carregarDados() {
+            const resposta = await fetch('dados.json');
+            const dados = await resposta.json();
+            const tabelaCorpo = document.getElementById('tabela-corpo');
+            tabelaCorpo.innerHTML = '';
+            dados.forEach(item => {
+                const tr = document.createElement('tr');
+                Object.values(item).forEach(valor => {
+                    const td = document.createElement('td');
+                    td.textContent = valor;
+                    tr.appendChild(td);
+                });
+                tabelaCorpo.appendChild(tr);
+            });
+        }
+
+        function removerDestaques() {
+            const destaques = document.querySelectorAll('.highlight');
+            destaques.forEach(el => {
+                el.outerHTML = el.textContent; // Remove o destaque mantendo o texto original
+            });
+        }
+
+        function aplicarDestaques(linha, termo) {
+            if (!termo) return;
+            linha.querySelectorAll('td').forEach(td => {
+                const regex = new RegExp(`(${termo})`, 'gi');
+                td.innerHTML = td.textContent.replace(regex, '<span class="highlight">$1</span>');
+            });
+        }
+
+        document.getElementById('busca').addEventListener('input', function () {
+            const filtro = this.value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabela-corpo tr');
+            removerDestaques(); // Remove destaques anteriores
+            linhas.forEach(linha => {
+                const textoLinha = linha.textContent.toLowerCase();
+                if (textoLinha.includes(filtro)) {
+                    linha.style.display = '';
+                    aplicarDestaques(linha, filtro);
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('limpar-busca').addEventListener('click', () => {
+            const busca = document.getElementById('busca');
+            busca.value = '';
+            removerDestaques();
+            const linhas = document.querySelectorAll('#tabela-corpo tr');
+            linhas.forEach(linha => (linha.style.display = ''));
+        });
+
+        carregarDados();
+    </script>
+</body>
+</html>
